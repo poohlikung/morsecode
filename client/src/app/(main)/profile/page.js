@@ -5,13 +5,14 @@ import { Space_Mono } from "next/font/google";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const spmono = Space_Mono({
   subsets: ["latin"],
   weight: ["400", "700"],
 });
 
-export default function Profile() {
+function Profile() {
   const { user, logout, refreshUser } = useAuth();
   const { theme } = useTheme();
   const [history, setHistory] = useState([]);
@@ -547,5 +548,13 @@ export default function Profile() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProtectedProfile() {
+  return (
+    <ProtectedRoute>
+      <Profile />
+    </ProtectedRoute>
   );
 }

@@ -7,26 +7,37 @@ const fs = require('fs');
 async function main() {
     console.log('Starting import...');
 
-    if (!process.env.DATABASE_URL) {
-        console.error('Error: DATABASE_URL is not set in .env');
-        process.exit(1);
+    let prisma;
+    let pool = null;
+
+    if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('postgresql')) {
+        pool = new Pool({
+            connectionString: process.env.DATABASE_URL
+        });
+        const adapter = new PrismaPg(pool);
+        prisma = new PrismaClient({ adapter });
+    } else {
+        const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
+        const adapter = new PrismaBetterSqlite3({ url: 'file:./dev.db' });
+        prisma = new PrismaClient({ adapter });
     }
-
-    const pool = new Pool({
-        connectionString: process.env.DATABASE_URL
-    });
-
-    const adapter = new PrismaPg(pool);
-    const prisma = new PrismaClient({ adapter });
 
     try {
         const rawData = fs.readFileSync('database_export.json', 'utf8');
         const data = JSON.parse(rawData);
 
         // Order matters for foreign key constraints!
-        // Truncate tables first (in reverse order of dependencies)
+        // Clear existing data using deleteMany (fully compatible with SQLite and PostgreSQL)
         console.log('Clearing existing data...');
-        await prisma.$executeRawUnsafe(`TRUNCATE TABLE "SessionDetail", "PlaySession", "UserModeStatus", "Content", "Settings", "User", "Difficulty", "Symbol", "Mode" RESTART IDENTITY CASCADE;`);
+        await prisma.sessionDetail.deleteMany();
+        await prisma.playSession.deleteMany();
+        await prisma.userModeStatus.deleteMany();
+        await prisma.content.deleteMany();
+        await prisma.settings.deleteMany();
+        await prisma.user.deleteMany();
+        await prisma.difficulty.deleteMany();
+        await prisma.symbol.deleteMany();
+        await prisma.mode.deleteMany();
 
         // 1. Insert Lookup Tables
         console.log('Importing Modes...');
@@ -60,10 +71,10 @@ async function main() {
 
         console.log('Import complete! 🎉');
     } catch (error) {
-        console.error('Error importing database:', error.message);
+        console.error('Error importing database:', error.stack);
     } finally {
         await prisma.$disconnect();
-        await pool.end();
+        if (pool) await pool.end();
     }
 }
 

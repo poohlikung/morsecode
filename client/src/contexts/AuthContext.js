@@ -19,6 +19,14 @@ export function AuthProvider({ children }) {
     if (token && userData) {
       setUser(JSON.parse(userData));
       getSettings(); // Load user settings
+    } else {
+      // Load guest settings from localStorage
+      const cached = localStorage.getItem('guestSettings');
+      if (cached) {
+        setSettings(JSON.parse(cached));
+      } else {
+        setSettings({ theme: 'dark', soundVolume: 50, showHints: true });
+      }
     }
     setLoading(false);
   }, []);
@@ -40,11 +48,14 @@ export function AuthProvider({ children }) {
     router.push('/login');
   };
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-production-8a2d.up.railway.app/api";
+
   const refreshUser = async () => {
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
       
-      const response = await fetch('https://morsecode-production-8a2d.up.railway.app/api/auth/me', {
+      const response = await fetch(`${API_URL}/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -65,13 +76,16 @@ export function AuthProvider({ children }) {
 
   const submitGameResult = async (gameData) => {
     try {
-      console.log('🚀 Submitting game data to:', 'https://morsecode-production-8a2d.up.railway.app/api/play-sessions');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) {
+        console.log('👤 Guest session completed. Skipping backend game submission.');
+        return { guest: true, message: 'Play stats processed locally' };
+      }
+
+      console.log('🚀 Submitting game data to:', `${API_URL}/play-sessions`);
       console.log('📦 Game data:', gameData);
       
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      console.log('🔑 Token exists:', !!token);
-      
-      const response = await fetch('https://morsecode-production-8a2d.up.railway.app/api/play-sessions', {
+      const response = await fetch(`${API_URL}/play-sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,10 +119,16 @@ export function AuthProvider({ children }) {
   };
 
   const getSettings = async () => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      const cached = localStorage.getItem('guestSettings');
+      const guestSettings = cached ? JSON.parse(cached) : { theme: 'dark', soundVolume: 50, showHints: true };
+      setSettings(guestSettings);
+      return guestSettings;
+    }
+
     try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      
-      const response = await fetch('https://morsecode-production-8a2d.up.railway.app/api/settings', {
+      const response = await fetch(`${API_URL}/settings`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -124,14 +144,20 @@ export function AuthProvider({ children }) {
   };
 
   const saveSettings = async (settingsData) => {
+    setSettings(settingsData);
+    
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      localStorage.setItem('guestSettings', JSON.stringify(settingsData));
+      console.log('💾 Guest settings saved locally');
+      return settingsData;
+    }
+
     try {
-      console.log('🚀 Saving settings to:', 'https://morsecode-production-8a2d.up.railway.app/api/settings');
+      console.log('🚀 Saving settings to:', `${API_URL}/settings`);
       console.log('⚙️ Settings data:', settingsData);
       
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      console.log('🔑 Token exists:', !!token);
-      
-      const response = await fetch('https://morsecode-production-8a2d.up.railway.app/api/settings', {
+      const response = await fetch(`${API_URL}/settings`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -169,7 +195,6 @@ export function AuthProvider({ children }) {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       if (!token) return;
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-production-8a2d.up.railway.app/api";
       const response = await fetch(`${API_URL}/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });

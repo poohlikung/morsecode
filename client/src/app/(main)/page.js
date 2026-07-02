@@ -17,7 +17,7 @@ const spmono = Space_Mono({
 });
 
 export default function Home() {
-  const { submitGameResult, settings } = useAuth();
+  const { submitGameResult, settings, user } = useAuth();
   const { theme } = useTheme();
   const [mode, setMode] = useState("encode");
 
@@ -1154,6 +1154,19 @@ export default function Home() {
               }
             }}
           />
+          {!user && (
+            <div className="mt-8 p-6 rounded-xl text-center max-w-md transition-all duration-300" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)' }}>
+              <p className={`${spmono.className} text-base font-bold`} style={{ color: 'var(--foreground)' }}>
+                ต้องการบันทึกสถิติและประวัติการเล่นของคุณไหม?
+              </p>
+              <p className={`${spmono.className} text-xs mt-2`} style={{ color: 'var(--foreground)', opacity: 0.6 }}>
+                คุณกำลังเล่นในโหมดผู้เยี่ยมชม (Guest)
+              </p>
+              <a href="/login" className={`${spmono.className} inline-block mt-4 px-6 py-3 rounded-lg font-bold text-sm transition-all duration-300 hover:scale-105`} style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}>
+                เข้าสู่ระบบ (Login)
+              </a>
+            </div>
+          )}
         </div>
       ) : mode === "decode" ? (
         <div

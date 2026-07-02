@@ -16,6 +16,7 @@ export default function Navbar() {
     const { user } = useAuth();
     const { theme } = useTheme();
     const [menuOpen, setMenuOpen] = useState(false);
+    const [hoveredLink, setHoveredLink] = useState(null);
 
     const navLinks = [
         { href: '/', label: 'home' },
@@ -29,22 +30,70 @@ export default function Navbar() {
         navLinks.push({ href: '/admin/dashboard', label: 'admin' });
     }
 
-    const linkClass = (href) =>
-        `${spmono.className} font-bold transition-colors duration-300 text-base md:text-[20px]'}`;
+    const getLinkStyle = (href) => {
+        const isActive = pathname === href;
+        const isHovered = hoveredLink === href;
+        return {
+            color: isActive ? 'var(--primary)' : isHovered ? 'var(--primary)' : 'var(--foreground)',
+            opacity: isActive ? 1 : isHovered ? 0.9 : 0.7,
+            transform: isHovered && !isActive ? 'translateY(-2px)' : 'translateY(0)',
+        };
+    };
 
     return (
         <>
             <nav className='w-full flex justify-between items-center px-4 sm:px-6 md:px-10 lg:px-20 xl:px-40 py-4 md:py-6 lg:py-10 absolute top-0 left-0 z-50 backdrop-blur-sm shadow-xl transition-colors duration-300' style={{ backgroundColor: 'var(--background)', opacity: 0.8 }}>
-                <a href='/' className={`${spmono.className} font-bold text-base md:text-[20px] shrink-0`} style={{ color: 'var(--foreground)' }}>morse<span style={{ color: 'var(--primary)' }}>code</span></a>
+                <a
+                    href='/'
+                    className={`${spmono.className} font-bold text-base md:text-[20px] shrink-0 transition-all duration-300 hover:scale-105`}
+                    style={{ color: 'var(--foreground)' }}
+                >
+                    morse<span style={{ color: 'var(--primary)' }}>code</span>
+                </a>
 
                 {/* Desktop: horizontal links + profile */}
                 <div className='hidden md:flex max-w-[520px] flex-1 justify-between items-center gap-2 mx-6'>
                     {navLinks.filter(l => l.href !== '/').map(({ href, label }) => (
-                        <a key={href} href={href} className={linkClass(href)} style={{ color: pathname === href ? 'var(--primary)' : 'var(--foreground)', opacity: pathname === href ? 1 : 0.7 }}>{label}</a>
+                        <a
+                            key={href}
+                            href={href}
+                            className={`${spmono.className} font-bold text-base md:text-[20px] transition-all duration-300 cursor-pointer`}
+                            style={getLinkStyle(href)}
+                            onMouseEnter={() => setHoveredLink(href)}
+                            onMouseLeave={() => setHoveredLink(null)}
+                        >
+                            {label}
+                        </a>
                     ))}
-                    <a href='/profile' className={`${spmono.className} w-12 h-12 rounded-full flex items-center justify-center font-bold text-[14px] outline shrink-0 transition-colors duration-300`} style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', outlineColor: 'var(--primary)' }}>
-                        <p className='mb-1'>{user?.username ? user.username.slice(0, 2).toUpperCase() : 'JP'}</p>
-                    </a>
+                    {user ? (
+                        <a
+                            href='/profile'
+                            className={`${spmono.className} w-12 h-12 rounded-full flex items-center justify-center font-bold text-[14px] outline shrink-0 transition-all duration-300 hover:scale-110 hover:shadow-lg cursor-pointer`}
+                            style={{
+                                backgroundColor: hoveredLink === '/profile' ? 'var(--primary)' : 'var(--card)',
+                                color: hoveredLink === '/profile' ? 'var(--primary-foreground)' : 'var(--card-foreground)',
+                                outlineColor: 'var(--primary)',
+                            }}
+                            onMouseEnter={() => setHoveredLink('/profile')}
+                            onMouseLeave={() => setHoveredLink(null)}
+                        >
+                            <p className='mb-1'>{user.username.slice(0, 2).toUpperCase()}</p>
+                        </a>
+                    ) : (
+                        <a
+                            href='/login'
+                            className={`${spmono.className} font-bold px-4 py-2 rounded-lg border transition-all duration-300 hover:scale-105 cursor-pointer`}
+                            style={{
+                                borderColor: 'var(--primary)',
+                                color: hoveredLink === '/login-btn' ? 'var(--primary-foreground)' : 'var(--primary)',
+                                backgroundColor: hoveredLink === '/login-btn' ? 'var(--primary)' : 'transparent',
+                            }}
+                            onMouseEnter={() => setHoveredLink('/login-btn')}
+                            onMouseLeave={() => setHoveredLink(null)}
+                        >
+                            login
+                        </a>
+                    )}
                 </div>
 
                 {/* Mobile: hamburger button */}
@@ -52,7 +101,7 @@ export default function Navbar() {
                     type="button"
                     aria-label={menuOpen ? 'Close menu' : 'Open menu'}
                     aria-expanded={menuOpen}
-                    className='md:hidden w-12 h-12 flex flex-col justify-center items-center gap-1.5 focus:outline-none focus:ring-2 rounded transition-colors duration-300'
+                    className='md:hidden w-12 h-12 flex flex-col justify-center items-center gap-1.5 focus:outline-none focus:ring-2 rounded transition-all duration-300 hover:scale-110 cursor-pointer'
                     style={{ color: 'var(--foreground)', '--tw-ring-color': 'var(--primary)' }}
                     onClick={() => setMenuOpen((o) => !o)}
                 >
@@ -60,9 +109,9 @@ export default function Navbar() {
                         <span className='text-2xl leading-none' aria-hidden>×</span>
                     ) : (
                         <>
-                            <span className='w-6 h-0.5 rounded' style={{ backgroundColor: 'var(--foreground)' }} />
-                            <span className='w-6 h-0.5 rounded' style={{ backgroundColor: 'var(--foreground)' }} />
-                            <span className='w-6 h-0.5 rounded' style={{ backgroundColor: 'var(--foreground)' }} />
+                            <span className='w-6 h-0.5 rounded transition-all duration-300' style={{ backgroundColor: 'var(--foreground)' }} />
+                            <span className='w-6 h-0.5 rounded transition-all duration-300' style={{ backgroundColor: 'var(--foreground)' }} />
+                            <span className='w-6 h-0.5 rounded transition-all duration-300' style={{ backgroundColor: 'var(--foreground)' }} />
                         </>
                     )}
                 </button>
@@ -76,24 +125,39 @@ export default function Navbar() {
                             <a
                                 key={href}
                                 href={href}
-                                className={`block py-3 px-2 font-bold text-[18px] transition-colors duration-300`}
-                                style={{ color: pathname === href ? 'var(--primary)' : 'var(--foreground)', opacity: pathname === href ? 1 : 0.7 }}
+                                className={`block py-3 px-2 font-bold text-[18px] transition-all duration-300 rounded-lg hover:pl-4`}
+                                style={{
+                                    color: pathname === href ? 'var(--primary)' : 'var(--foreground)',
+                                    opacity: pathname === href ? 1 : 0.7,
+                                    backgroundColor: pathname === href ? 'rgba(239, 68, 68, 0.08)' : 'transparent',
+                                }}
                                 onClick={() => setMenuOpen(false)}
                             >
                                 {label}
                             </a>
                         ))}
-                        <a
-                            href='/profile'
-                            className={`flex items-center gap-3 py-3 px-2 font-bold text-[18px] transition-colors duration-300 mt-2 pt-4`}
-                            style={{ color: 'var(--foreground)', opacity: 0.7, borderTop: '1px solid var(--border)' }}
-                            onClick={() => setMenuOpen(false)}
-                        >
-                            <span className='w-12 h-12 rounded-full flex items-center justify-center text-[14px] outline shrink-0 transition-colors duration-300' style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', outlineColor: 'var(--primary)' }}>
-                                <span className='mb-1'>{user?.username ? user.username.slice(0, 2).toUpperCase() : 'JP'}</span>
-                            </span>
-                            profile
-                        </a>
+                        {user ? (
+                            <a
+                                href='/profile'
+                                className={`flex items-center gap-3 py-3 px-2 font-bold text-[18px] transition-all duration-300 mt-2 pt-4 rounded-lg hover:pl-4`}
+                                style={{ color: 'var(--foreground)', opacity: 0.7, borderTop: '1px solid var(--border)' }}
+                                onClick={() => setMenuOpen(false)}
+                            >
+                                <span className='w-12 h-12 rounded-full flex items-center justify-center text-[14px] outline shrink-0 transition-colors duration-300' style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', outlineColor: 'var(--primary)' }}>
+                                    <span className='mb-1'>{user.username.slice(0, 2).toUpperCase()}</span>
+                                </span>
+                                profile
+                            </a>
+                        ) : (
+                            <a
+                                href='/login'
+                                className={`block py-3 px-2 font-bold text-[18px] transition-all duration-300 mt-2 pt-4 rounded-lg hover:pl-4`}
+                                style={{ color: 'var(--primary)', borderTop: '1px solid var(--border)' }}
+                                onClick={() => setMenuOpen(false)}
+                            >
+                                login
+                            </a>
+                        )}
                     </div>
                 </div>
             )}

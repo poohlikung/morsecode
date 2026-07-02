@@ -121,6 +121,44 @@ router.post('/register', async (req, res) => {
     }
 });
 
+const loginAttempts = new Map();
+
+// Helper to check lockout status
+const getLockoutTimeLeft = (username) => {
+    const key = username.toLowerCase().trim();
+    const record = loginAttempts.get(key);
+    if (!record) return 0;
+    
+    const now = Date.now();
+    if (record.lockUntil && record.lockUntil > now) {
+        return Math.ceil((record.lockUntil - now) / 1000); // seconds left
+    }
+    
+    // If lock expired, clean it up
+    if (record.lockUntil && record.lockUntil <= now) {
+        loginAttempts.delete(key);
+    }
+    return 0;
+};
+
+// Helper to record a failed attempt
+const recordFailedAttempt = (username) => {
+    const key = username.toLowerCase().trim();
+    const record = loginAttempts.get(key) || { attempts: 0, lockUntil: null };
+    record.attempts += 1;
+    if (record.attempts >= 5) {
+        record.lockUntil = Date.now() + 5 * 60 * 1000; // 5 minutes
+    }
+    loginAttempts.set(key, record);
+    return record;
+};
+
+// Helper to reset attempts upon successful login
+const resetFailedAttempts = (username) => {
+    const key = username.toLowerCase().trim();
+    loginAttempts.delete(key);
+};
+
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
     try {
@@ -128,6 +166,15 @@ router.post('/login', async (req, res) => {
 
         if (!username || !password) {
             return res.status(400).json({ error: 'Email and password are required' });
+        }
+
+        // Check lockout first
+        const timeLeft = getLockoutTimeLeft(username);
+        if (timeLeft > 0) {
+            const minutesLeft = Math.ceil(timeLeft / 60);
+            return res.status(429).json({ 
+                error: `Too many failed attempts. Please wait ${minutesLeft} minute(s) before trying again.` 
+            });
         }
 
         // Find user by username or email (reusing the 'username' variable from req.body)
@@ -142,14 +189,27 @@ router.post('/login', async (req, res) => {
         });
 
         if (!user) {
+            recordFailedAttempt(username);
             return res.status(401).json({ error: 'Invalid username or password' });
         }
 
         // Check password
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
-            return res.status(401).json({ error: 'Invalid username or password' });
+            const record = recordFailedAttempt(username);
+            if (record.attempts >= 5) {
+                return res.status(429).json({ 
+                    error: 'Too many failed attempts. Your account has been locked for 5 minutes.' 
+                });
+            }
+            const attemptsLeft = 5 - record.attempts;
+            return res.status(401).json({ 
+                error: `Invalid username or password. You have ${attemptsLeft} attempts left.` 
+            });
         }
+
+        // Reset attempts on successful login
+        resetFailedAttempts(username);
 
         // Generate JWT token
         const token = jwt.sign(

@@ -22,14 +22,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Setup PostgreSQL connection pool
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL
-});
+// Setup database
+let pool = null;
+let prisma;
 
-// Setup Prisma with pg adapter
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('postgresql')) {
+    pool = new Pool({
+        connectionString: process.env.DATABASE_URL
+    });
+    const adapter = new PrismaPg(pool);
+    prisma = new PrismaClient({ adapter });
+} else {
+    const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
+    const adapter = new PrismaBetterSqlite3({ url: 'file:./dev.db' });
+    prisma = new PrismaClient({ adapter });
+    console.log('📝 SQLite Mode: Initialized database locally at dev.db');
+}
 
 // Make prisma available in routes
 app.use((req, res, next) => {
@@ -97,17 +105,21 @@ server.on('error', (err) => {
 });
 
 // Test database connection asynchronously after server starts
-pool.query('SELECT NOW()').then(result => {
-    console.log('✅ Database connected:', result.rows[0].now);
-}).catch(err => {
-    console.error('❌ Database connection error:', err.message);
-});
+if (pool) {
+    pool.query('SELECT NOW()').then(result => {
+        console.log('✅ Database connected:', result.rows[0].now);
+    }).catch(err => {
+        console.error('❌ Database connection error:', err.message);
+    });
+} else {
+    console.log('✅ Local SQLite database connection initialized successfully.');
+}
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
     console.log('Shutting down...');
     server.close();
     await prisma.$disconnect();
-    await pool.end();
+    if (pool) await pool.end();
     process.exit(0);
 });
