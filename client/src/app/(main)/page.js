@@ -1182,7 +1182,7 @@ export default function Home() {
               style={{
                 transform: `translateY(-${Math.max(0, decodeCurrentLine - 1) * (() => {
                   if (!innerWrapRef.current) {
-                    const width = window?.innerWidth || 768;
+                    const width = typeof window !== 'undefined' ? window.innerWidth : 768;
                     if (width < 640) return 40;
                     if (width < 1024) return 45;
                     return 53;
@@ -1466,7 +1466,7 @@ export default function Home() {
               style={{
                 transform: `translateY(-${Math.max(0, currentLine - 1) * (() => {
                   if (!innerWrapRef.current) {
-                    const width = window?.innerWidth || 768;
+                    const width = typeof window !== 'undefined' ? window.innerWidth : 768;
                     if (width < 640) return 40;
                     if (width < 1024) return 45;
                     return 53;

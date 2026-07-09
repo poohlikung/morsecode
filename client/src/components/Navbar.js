@@ -40,6 +40,16 @@ export default function Navbar() {
         };
     };
 
+    const getMobileLinkStyle = (href) => {
+        const isActive = pathname === href;
+        const isHovered = hoveredLink === href;
+        return {
+            color: isActive || isHovered ? 'var(--primary)' : 'var(--foreground)',
+            opacity: isActive || isHovered ? 1 : 0.7,
+            backgroundColor: isActive ? 'rgba(239, 68, 68, 0.08)' : isHovered ? 'rgba(239, 68, 68, 0.05)' : 'transparent',
+        };
+    };
+
     return (
         <>
             <nav className='w-full flex justify-between items-center px-4 sm:px-6 md:px-10 lg:px-20 xl:px-40 py-4 md:py-6 lg:py-10 absolute top-0 left-0 z-50 backdrop-blur-sm shadow-xl transition-colors duration-300' style={{ backgroundColor: 'var(--background)', opacity: 0.8 }}>
@@ -126,11 +136,9 @@ export default function Navbar() {
                                 key={href}
                                 href={href}
                                 className={`block py-3 px-2 font-bold text-[18px] transition-all duration-300 rounded-lg hover:pl-4`}
-                                style={{
-                                    color: pathname === href ? 'var(--primary)' : 'var(--foreground)',
-                                    opacity: pathname === href ? 1 : 0.7,
-                                    backgroundColor: pathname === href ? 'rgba(239, 68, 68, 0.08)' : 'transparent',
-                                }}
+                                style={getMobileLinkStyle(href)}
+                                onMouseEnter={() => setHoveredLink(href)}
+                                onMouseLeave={() => setHoveredLink(null)}
                                 onClick={() => setMenuOpen(false)}
                             >
                                 {label}
@@ -140,7 +148,13 @@ export default function Navbar() {
                             <a
                                 href='/profile'
                                 className={`flex items-center gap-3 py-3 px-2 font-bold text-[18px] transition-all duration-300 mt-2 pt-4 rounded-lg hover:pl-4`}
-                                style={{ color: 'var(--foreground)', opacity: 0.7, borderTop: '1px solid var(--border)' }}
+                                style={{
+                                    color: hoveredLink === '/profile-mobile' ? 'var(--primary)' : 'var(--foreground)',
+                                    opacity: hoveredLink === '/profile-mobile' ? 1 : 0.7,
+                                    borderTop: '1px solid var(--border)',
+                                }}
+                                onMouseEnter={() => setHoveredLink('/profile-mobile')}
+                                onMouseLeave={() => setHoveredLink(null)}
                                 onClick={() => setMenuOpen(false)}
                             >
                                 <span className='w-12 h-12 rounded-full flex items-center justify-center text-[14px] outline shrink-0 transition-colors duration-300' style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', outlineColor: 'var(--primary)' }}>
@@ -152,7 +166,13 @@ export default function Navbar() {
                             <a
                                 href='/login'
                                 className={`block py-3 px-2 font-bold text-[18px] transition-all duration-300 mt-2 pt-4 rounded-lg hover:pl-4`}
-                                style={{ color: 'var(--primary)', borderTop: '1px solid var(--border)' }}
+                                style={{
+                                    color: 'var(--primary)',
+                                    opacity: hoveredLink === '/login-mobile' ? 1 : 0.85,
+                                    borderTop: '1px solid var(--border)',
+                                }}
+                                onMouseEnter={() => setHoveredLink('/login-mobile')}
+                                onMouseLeave={() => setHoveredLink(null)}
                                 onClick={() => setMenuOpen(false)}
                             >
                                 login
