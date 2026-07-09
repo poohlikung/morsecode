@@ -3,6 +3,17 @@ const { authenticateToken } = require('./auth.js');
 
 const router = express.Router();
 
+const VALID_THEMES = [
+    'dark',
+    'theme-light',
+    'theme-cyberpunk',
+    'theme-ocean',
+    'theme-forest',
+    'theme-sunset',
+    'theme-amber',
+    'theme-contrast'
+];
+
 // All routes require authentication
 router.use(authenticateToken);
 
@@ -32,6 +43,18 @@ router.get('/', async (req, res) => {
 router.put('/', async (req, res) => {
     try {
         const { theme, soundVolume, showHints } = req.body;
+
+        if (theme !== undefined && !VALID_THEMES.includes(theme)) {
+            return res.status(400).json({ error: 'Invalid theme value' });
+        }
+
+        if (soundVolume !== undefined && (typeof soundVolume !== 'number' || soundVolume < 0 || soundVolume > 100)) {
+            return res.status(400).json({ error: 'soundVolume must be a number between 0 and 100' });
+        }
+
+        if (showHints !== undefined && typeof showHints !== 'boolean') {
+            return res.status(400).json({ error: 'showHints must be a boolean' });
+        }
 
         const updateData = {};
         if (theme !== undefined) updateData.theme = theme;

@@ -5,16 +5,29 @@ import { useAuth } from './AuthContext';
 
 const ThemeContext = createContext();
 
+export const THEMES = [
+    { value: 'dark', label: 'Dark' },
+    { value: 'theme-light', label: 'Light' },
+    { value: 'theme-cyberpunk', label: 'Cyberpunk' },
+    { value: 'theme-ocean', label: 'Ocean' },
+    { value: 'theme-forest', label: 'Forest' },
+    { value: 'theme-sunset', label: 'Sunset' },
+    { value: 'theme-amber', label: 'Amber Terminal' },
+    { value: 'theme-contrast', label: 'High Contrast' },
+];
+
+const THEME_CLASSES = THEMES.map(t => t.value);
+
 export function ThemeProvider({ children }) {
     const { user } = useAuth();
-    const [theme, setTheme] = useState('dark'); // 'dark', 'theme-cyberpunk', 'theme-light'
+    const [theme, setTheme] = useState('dark');
     const [settings, setSettings] = useState(null);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-production-8a2d.up.railway.app/api";
 
     const applyThemeToHtml = (selectedTheme) => {
         // Remove old theme classes
-        document.documentElement.classList.remove('dark', 'theme-cyberpunk', 'theme-light');
+        document.documentElement.classList.remove(...THEME_CLASSES);
 
         // Add new theme class
         if (selectedTheme === 'dark') {

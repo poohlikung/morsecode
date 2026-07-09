@@ -69,6 +69,61 @@
   --glow-pink: 0 0 10px rgba(255, 0, 85, 0.5), 0 0 20px rgba(255, 0, 85, 0.3);
 }
 
+/* Ocean Theme */
+:root.theme-ocean {
+  --background: #072a3a; /* Deep sea blue */
+  --foreground: #e0f7fa; /* Sea foam */
+  --primary: #06b6d4; /* Cyan 500 */
+  --primary-foreground: #062730;
+  --card: #0e3d52;
+  --card-foreground: #e0f7fa;
+  --border: #14607f;
+}
+
+/* Forest Theme */
+:root.theme-forest {
+  --background: #0f1d13; /* Dark canopy */
+  --foreground: #e7f5e6; /* Leaf white */
+  --primary: #22c55e; /* Green 500 */
+  --primary-foreground: #052e10;
+  --card: #16301d;
+  --card-foreground: #e7f5e6;
+  --border: #2f5c37;
+}
+
+/* Sunset Theme */
+:root.theme-sunset {
+  --background: #2a1030; /* Dusk purple */
+  --foreground: #fff1e6; /* Warm cream */
+  --primary: #f97316; /* Orange 500 */
+  --primary-foreground: #2a1030;
+  --card: #3d1a45;
+  --card-foreground: #fff1e6;
+  --border: #6b2f74;
+}
+
+/* Amber Terminal Theme (retro telegraph vibe) */
+:root.theme-amber {
+  --background: #1a1206; /* Old CRT black */
+  --foreground: #ffb000; /* Phosphor amber */
+  --primary: #ffb000;
+  --primary-foreground: #1a1206;
+  --card: #241a0a;
+  --card-foreground: #ffcc66;
+  --border: #7a5210;
+}
+
+/* High Contrast Theme (accessibility) */
+:root.theme-contrast {
+  --background: #000000;
+  --foreground: #ffffff;
+  --primary: #ffff00; /* High-visibility yellow */
+  --primary-foreground: #000000;
+  --card: #000000;
+  --card-foreground: #ffffff;
+  --border: #ffffff;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

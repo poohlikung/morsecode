@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Space_Mono } from "next/font/google";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
+import { useTheme, THEMES } from "@/contexts/ThemeContext";
 import Image from "next/image";
 
 const spmono = Space_Mono({
@@ -76,9 +76,9 @@ export default function Settings() {
                     '--tw-ring-color': 'var(--primary)'
                   }}
                 >
-                  <option value="dark">Dark</option>
-                  <option value="theme-light">Light</option>
-                  <option value="theme-cyberpunk">Cyberpunk</option>
+                  {THEMES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
                 </select>
               </div>
 

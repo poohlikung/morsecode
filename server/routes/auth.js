@@ -22,43 +22,32 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// GET /api/auth/me - Get current user data
-router.get('/me', authenticateToken, async (req, res) => {
-    try {
-        const user = await req.prisma.user.findUnique({
-            where: { id: req.user.id },
-            include: { settings: true }
-        });
-
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        res.json({
-            id: user.id,
-            email: user.email,
-            username: user.username,
-            totalPlay: user.totalPlay,
-            rank: user.rank,
-            avgWpm: user.avgWpm,
-            avgAccuracy: user.avgAccuracy,
-            role: user.role,
-            createdAt: user.createdAt
-        });
-    } catch (error) {
-        console.error('Get user info error:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
     try {
-        const { email, username, password } = req.body;
+        let { email, username, password } = req.body;
 
         // Validate input
         if (!email || !username || !password) {
             return res.status(400).json({ error: 'Email, username, and password are required' });
+        }
+
+        email = String(email).trim().toLowerCase();
+        username = String(username).trim();
+
+        if (!EMAIL_REGEX.test(email)) {
+            return res.status(400).json({ error: 'Please provide a valid email address' });
+        }
+
+        if (!USERNAME_REGEX.test(username)) {
+            return res.status(400).json({ error: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' });
+        }
+
+        if (typeof password !== 'string' || password.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters long' });
         }
 
         // Check if user already exists
@@ -164,7 +153,7 @@ router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        if (!username || !password) {
+        if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
             return res.status(400).json({ error: 'Email and password are required' });
         }
 

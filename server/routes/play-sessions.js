@@ -223,7 +223,7 @@ router.post('/', async (req, res) => {
             requestBody: { modeId, difficultyId, symbolId, wpm, accuracy, mistakeCount, timeTaken, details: details?.length || 0 },
             userId: req.user?.id
         });
-        res.status(500).json({ error: 'Internal server error', details: error.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
