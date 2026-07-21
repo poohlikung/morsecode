@@ -15,6 +15,8 @@ export function AuthProvider({ children }) {
     // Check if user is logged in on mount (check localStorage first, then sessionStorage)
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
+    // menuPosition is stored locally (not persisted server-side) so it works for guests too
+    const savedMenuPosition = localStorage.getItem('menuPosition') || 'top';
 
     if (token && userData) {
       setUser(JSON.parse(userData));
@@ -22,16 +24,14 @@ export function AuthProvider({ children }) {
     } else {
       // Load guest settings from localStorage
       const cached = localStorage.getItem('guestSettings');
-      if (cached) {
-        setSettings(JSON.parse(cached));
-      } else {
-        setSettings({ theme: 'dark', soundVolume: 50, showHints: true });
-      }
+      const base = cached ? JSON.parse(cached) : { theme: 'dark', soundVolume: 50, showHints: true };
+      // The dedicated `menuPosition` key is the source of truth (base may hold a stale copy)
+      setSettings({ ...base, menuPosition: savedMenuPosition });
     }
     setLoading(false);
   }, []);
 
-  const login = (token, userData, rememberMe = false) => {
+  const login = (token, userData, rememberMe = true) => {
     const storage = rememberMe ? localStorage : sessionStorage;
     storage.setItem('token', token);
     storage.setItem('user', JSON.stringify(userData));
@@ -120,9 +120,11 @@ export function AuthProvider({ children }) {
 
   const getSettings = async () => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const savedMenuPosition = localStorage.getItem('menuPosition') || 'top';
     if (!token) {
       const cached = localStorage.getItem('guestSettings');
-      const guestSettings = cached ? JSON.parse(cached) : { theme: 'dark', soundVolume: 50, showHints: true };
+      const base = cached ? JSON.parse(cached) : { theme: 'dark', soundVolume: 50, showHints: true };
+      const guestSettings = { ...base, menuPosition: savedMenuPosition };
       setSettings(guestSettings);
       return guestSettings;
     }
@@ -131,11 +133,13 @@ export function AuthProvider({ children }) {
       const response = await fetch(`${API_URL}/settings`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (response.ok) {
         const settingsData = await response.json();
-        setSettings(settingsData);
-        return settingsData;
+        // menuPosition lives only in localStorage, so merge it back onto server settings
+        const merged = { ...settingsData, menuPosition: savedMenuPosition };
+        setSettings(merged);
+        return merged;
       }
     } catch (error) {
       console.error('❌ Error fetching settings:', error);
@@ -145,7 +149,12 @@ export function AuthProvider({ children }) {
 
   const saveSettings = async (settingsData) => {
     setSettings(settingsData);
-    
+
+    // menuPosition is stored locally so it persists on reload for everyone
+    if (settingsData && settingsData.menuPosition) {
+      localStorage.setItem('menuPosition', settingsData.menuPosition);
+    }
+
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (!token) {
       localStorage.setItem('guestSettings', JSON.stringify(settingsData));

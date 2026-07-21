@@ -924,6 +924,36 @@ export default function Home() {
     }
   }, [isCompleted, sessionCompletedTime]);
 
+  // Control bar position (configurable in settings: top | left | right | bottom)
+  const menuPosition = settings?.menuPosition || 'top';
+  const isVerticalMenu = menuPosition === 'left' || menuPosition === 'right';
+
+  const horizontalMenuWrapper =
+    menuPosition === 'bottom'
+      ? 'fixed bottom-6 left-1/2 -translate-x-1/2 z-40 min-h-[65px] px-4 justify-center items-center gap-1 shadow-2xl'
+      : 'w-full max-w-[705px] min-h-[65px] px-2 sm:px-4 justify-between items-center gap-1 sm:gap-2 mt-14';
+
+  const verticalMenuWrapper =
+    (menuPosition === 'left' ? 'fixed left-4 ' : 'fixed right-4 ') +
+    'top-1/2 -translate-y-1/2 z-40 flex-col px-2 py-2 justify-center items-stretch gap-1 shadow-2xl';
+
+  // Groups of selectable options rendered in the desktop control bar
+  const menuGroups = [
+    [
+      { value: 'decode', active: mode === 'decode', onClick: () => setMode('decode') },
+      { value: 'encode', active: mode === 'encode', onClick: () => setMode('encode') },
+    ],
+    [
+      { value: 'a-z', active: type === 'a-z', onClick: () => setType('a-z') },
+      { value: 'word', active: type === 'word', onClick: () => setType('word') },
+    ],
+    ['10', '15', '50', '100'].map((len) => ({
+      value: len,
+      active: length === len,
+      onClick: () => setLength(len),
+    })),
+  ];
+
   return (
     <div className="flex flex-col items-center px-4 w-full">
       {!isCompleted && (
@@ -981,53 +1011,34 @@ export default function Home() {
               <option value="100">100</option>
             </select>
           </div>
-          {/* Desktop: original button bar */}
+          {/* Desktop: position-aware control bar (top / left / right / bottom) */}
           <div
-            className={`${spmono.className} hidden md:flex font-bold w-full max-w-[705px] min-h-[65px] px-2 sm:px-4 rounded-xl justify-between items-center gap-1 sm:gap-2 mt-14 transition-colors duration-300`}
-          style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', border: '1px solid var(--border)' }}
+            className={`${spmono.className} hidden md:flex font-bold rounded-xl transition-all duration-300 ${isVerticalMenu ? verticalMenuWrapper : horizontalMenuWrapper}`}
+            style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', border: '1px solid var(--border)' }}
           >
-            <button
-              onClick={() => setMode("decode")}
-              className={`pl-4 pr-2 md:pl-10 md:pr-4 py-4 transition-colors duration-300`}
-              style={{ color: mode === "decode" ? 'var(--primary)' : 'var(--foreground)', opacity: mode === "decode" ? 1 : 0.7 }}
-            >
-              decode
-            </button>
-            <button
-              onClick={() => setMode("encode")}
-              className={`px-4 py-4 transition-colors duration-300`}
-              style={{ color: mode === "encode" ? 'var(--primary)' : 'var(--foreground)', opacity: mode === "encode" ? 1 : 0.7 }}
-            >
-              encode
-            </button>
-            <p style={{ color: 'var(--foreground)', opacity: 0.7 }}>|</p>
-            <button
-              onClick={() => setType("a-z")}
-              className={`px-4 py-4 transition-colors duration-300`}
-              style={{ color: type === "a-z" ? 'var(--primary)' : 'var(--foreground)', opacity: type === "a-z" ? 1 : 0.7 }}
-            >
-              a-z
-            </button>
-            <button
-              onClick={() => setType("word")}
-              className={`px-4 py-4 transition-colors duration-300`}
-              style={{ color: type === "word" ? 'var(--primary)' : 'var(--foreground)', opacity: type === "word" ? 1 : 0.7 }}
-            >
-              word
-            </button>
-            <p style={{ color: 'var(--foreground)', opacity: 0.7 }}>|</p>
-            <div className="flex">
-              {["10", "15", "50", "100"].map((len) => (
-                <button
-                  key={len}
-                  onClick={() => setLength(len)}
-                  className={`px-4 py-4 transition-colors duration-300 ${len === "100" ? "pr-10" : ""}`}
-                  style={{ color: length === len ? 'var(--primary)' : 'var(--foreground)', opacity: length === len ? 1 : 0.7 }}
-                >
-                  {len}
-                </button>
-              ))}
-            </div>
+            {menuGroups.map((group, gi) => (
+              <React.Fragment key={gi}>
+                {gi > 0 && (
+                  isVerticalMenu ? (
+                    <div className="w-full h-px my-1" style={{ backgroundColor: 'var(--foreground)', opacity: 0.15 }} />
+                  ) : (
+                    <p style={{ color: 'var(--foreground)', opacity: 0.7 }}>|</p>
+                  )
+                )}
+                <div className={isVerticalMenu ? 'flex flex-col w-full' : 'flex'}>
+                  {group.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={opt.onClick}
+                      className={`transition-colors duration-300 ${isVerticalMenu ? 'px-5 py-2 text-center rounded-lg' : 'px-4 py-4'}`}
+                      style={{ color: opt.active ? 'var(--primary)' : 'var(--foreground)', opacity: opt.active ? 1 : 0.7 }}
+                    >
+                      {opt.value}
+                    </button>
+                  ))}
+                </div>
+              </React.Fragment>
+            ))}
           </div>
         </>
       )}

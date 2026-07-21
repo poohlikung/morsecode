@@ -169,3 +169,33 @@ body {
 .animate-fadeOut {
   animation: fadeOut 0.3s ease-out;
 }
+
+@keyframes cookieIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cookieOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+}
+
+.animate-cookieIn {
+  animation: cookieIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-cookieOut {
+  animation: cookieOut 0.3s ease-in forwards;
+}

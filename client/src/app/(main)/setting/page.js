@@ -82,6 +82,40 @@ export default function Settings() {
                 </select>
               </div>
 
+              {/* Menu Position */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">Menu Position</h3>
+                  <p className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.7 }}>Where the mode selector bar appears</p>
+                </div>
+                <select
+                  value={settings?.menuPosition || 'top'}
+                  onChange={async (e) => {
+                    const newSettings = { ...settings, menuPosition: e.target.value };
+                    setSettings(newSettings);
+
+                    try {
+                      await saveSettings(newSettings);
+                    } catch (error) {
+                      setSaveMessage(`Error: ${error.message}`);
+                      setTimeout(() => setSaveMessage(""), 5000);
+                    }
+                  }}
+                  className="rounded-lg px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 transition-colors"
+                  style={{
+                    backgroundColor: 'var(--card)',
+                    color: 'var(--card-foreground)',
+                    border: '1px solid var(--border)',
+                    '--tw-ring-color': 'var(--primary)'
+                  }}
+                >
+                  <option value="top">Top</option>
+                  <option value="left">Left</option>
+                  <option value="right">Right</option>
+                  <option value="bottom">Bottom</option>
+                </select>
+              </div>
+
               {/* Sound Volume */}
               <div className="flex items-center justify-between">
                 <div>
@@ -100,8 +134,6 @@ export default function Settings() {
                     
                     try {
                       await saveSettings(newSettings);
-                      setSaveMessage("Settings saved successfully!");
-                      setTimeout(() => setSaveMessage(""), 3000);
                     } catch (error) {
                       setSaveMessage(`Error: ${error.message}`);
                       setTimeout(() => setSaveMessage(""), 5000);
